@@ -1,0 +1,45 @@
+menu "A2DP Sink Player Configuration"
+    config LOCAL_DEVICE_NAME
+        string "Local Device Name"
+        default "A2DP_Sink_Player"
+        help
+            Use this option to set local device name.
+
+    config I2S_BCK_PIN
+        int "I2S BCK GPIO"
+        default 2
+        help
+            GPIO for I2S bit clock
+
+    config I2S_LRCK_PIN
+        int "I2S LRCK (WS) GPIO"
+        default 15
+        help
+            GPIO for I2S word select
+
+    config I2S_DATA_PIN
+        int "I2S DATA GPIO"
+        default 14
+        help
+            GPIO for I2S data output
+
+    config DEFAULT_I2S_SAMPLE_RATE
+        int "Default I2S sample rate"
+        default 44100
+
+    config DEFAULT_I2S_BIT_DEPTH
+        int "Default I2S bit depth"
+        default 16
+
+    config DEFAULT_I2S_CHANNELS
+        int "Default I2S channels"
+        default 2
+
+    config EXAMPLE_A2DP_SINK_AUTO_RECONNECT
+        bool "Auto reconnect after unexpected disconnect"
+        default y
+        help
+            Reconnect to the last peer automatically when the link drops
+            unexpectedly (remote close). Local disconnects never reconnect.
+
+endmenu
