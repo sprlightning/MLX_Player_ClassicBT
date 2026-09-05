@@ -45,7 +45,7 @@
 
 // 其他定义
 static const char *TAG = "main";
-const char *bt_name = "MLX_Player";
+const char *bt_name = "A2DP_Sink_Player";
 #define DEFAULT_AVRC_VOLUME (26)
 
 // 系统状态定义

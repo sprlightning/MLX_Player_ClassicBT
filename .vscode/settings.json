@@ -155,5 +155,14 @@
     },
     "idf.espIdfPathWin": "e:\\Espressif\\frameworks\\v5.1.4\\esp-idf",
     "idf.toolsPathWin": "e:\\Espressif\\tools",
-    "idf.pythonInstallPath": "e:\\Espressif\\tools\\tools\\idf-python\\3.11.2\\python.exe"
+    "idf.pythonInstallPath": "e:\\Espressif\\tools\\tools\\idf-python\\3.11.2\\python.exe",
+    "idf.openOcdConfigs": [
+        "interface/ftdi/esp32_devkitj_v1.cfg",
+        "target/esp32.cfg"
+    ],
+    "idf.monitorBaudRate": "921600",
+    "idf.enableCCache": true,
+    "idf.monitorNoReset": false,
+    "idf.monitorEnableTimestamps": false,
+    "idf.monitorPort": "COM6"
 }
