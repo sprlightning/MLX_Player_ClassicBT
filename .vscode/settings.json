@@ -160,5 +160,9 @@
         "interface/ftdi/esp32_devkitj_v1.cfg",
         "target/esp32.cfg"
     ],
-    "idf.monitorBaudRate": "921600"
+    "idf.monitorBaudRate": "921600",
+    "idf.enableCCache": true,
+    "idf.monitorNoReset": true,
+    "idf.monitorEnableTimestamps": true,
+    "idf.monitorPort": "COM6"
 }
