@@ -2,31 +2,31 @@ dependencies:
   a2dp_sink_common_utils:
     dependencies: []
     source:
-      path: ../esp-idf-v6.1-codecs/examples/bluetooth/bluedroid/classic_bt/common/a2dp_utils/a2dp_sink_common_utils
+      path: ../../../Espressif/frameworks/v6.1.0/esp-idf/examples/bluetooth/bluedroid/classic_bt/common/a2dp_utils/a2dp_sink_common_utils
       type: local
     version: '*'
   a2dp_sink_ext_codec_utils:
     dependencies: []
     source:
-      path: ../esp-idf-v6.1-codecs/examples/bluetooth/bluedroid/classic_bt/common/a2dp_utils/a2dp_sink_ext_codec_utils
+      path: ../../../Espressif/frameworks/v6.1.0/esp-idf/examples/bluetooth/bluedroid/classic_bt/common/a2dp_utils/a2dp_sink_ext_codec_utils
       type: local
     version: '*'
   a2dp_sink_int_codec_utils:
     dependencies: []
     source:
-      path: ../esp-idf-v6.1-codecs/examples/bluetooth/bluedroid/classic_bt/common/a2dp_utils/a2dp_sink_int_codec_utils
+      path: ../../../Espressif/frameworks/v6.1.0/esp-idf/examples/bluetooth/bluedroid/classic_bt/common/a2dp_utils/a2dp_sink_int_codec_utils
       type: local
     version: '*'
   bredr_app_common_utils:
     dependencies: []
     source:
-      path: ../esp-idf-v6.1-codecs/examples/bluetooth/bluedroid/classic_bt/common/bredr_app_common_utils
+      path: ../../../Espressif/frameworks/v6.1.0/esp-idf/examples/bluetooth/bluedroid/classic_bt/common/bredr_app_common_utils
       type: local
     version: '*'
   bt_app_core_utils:
     dependencies: []
     source:
-      path: ../esp-idf-v6.1-codecs/examples/bluetooth/bluedroid/classic_bt/common/bt_app_core_utils
+      path: ../../../Espressif/frameworks/v6.1.0/esp-idf/examples/bluetooth/bluedroid/classic_bt/common/bt_app_core_utils
       type: local
     version: '*'
   idf:
