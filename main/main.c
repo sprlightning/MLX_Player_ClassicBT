@@ -1,8 +1,10 @@
 /*
  * MLX_Player_ClassicBT - minimal native A2DP sink
- * Hardware: ESP-32S-N4R8 (ESP32-D0WD) + PCM5102A I2S DAC
- * BT/I2S implementation: unmodified cfint514 player pipeline
- * (audio_output_i2s + bt_app_av), peripheral features trimmed.
+ * Hardware: ESP32-CAM-N4R8 (ESP-32S Module, ESP32-D0WD) + PCM5102A I2S DAC
+ * BT/I2S use native driver (audio_output_i2s + bt_app_av).
+ * esp-idf use https://github.com/sprlightning/esp-idf-bt-multiple-codecs/tree/a2dp-codecs/v5.1.4
+ * Bluetooth PHY_Init may cause BROWNOUT, need to disable BROWNOUT_CHECK.
+ * Wakeness PHY data may limit the power of Bluetooth, need a strong power supply.
  */
 
 #include <stdio.h>
@@ -85,4 +87,14 @@ void app_main(void)
     bt_app_task_start_up();
     /* device name, connection mode and profile set up */
     bt_app_work_dispatch(bt_av_hdl_stack_evt, BT_APP_EVT_STACK_UP, NULL, 0, NULL);
+
+    ESP_LOGI(BT_AV_TAG, "BT player started");
+
+    /* 蓝牙自动回连：开启后进入蓝牙模式即主动连接上次配对设备（像普通蓝牙耳机）。
+     * 复用 BT_AV_BG_WORK_RECONNECT 专用任务（延迟 ~400ms 等 A2DP 初始化完成再
+     * esp_a2d_sink_connect last_bda），与断开后恢复 AVRCP 的回连相互独立。 */
+#if (CONFIG_EXAMPLE_A2DP_SINK_AUTO_RECONNECT == true)
+    ESP_LOGI(BT_AV_TAG, "Auto reconnect enabled, scheduling connect to last device");
+    bt_reconnect();
+#endif
 }

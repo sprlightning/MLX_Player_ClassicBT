@@ -193,7 +193,6 @@ static SemaphoreHandle_t s_a2dp_disc_sem = NULL;
 #ifdef CONFIG_PM_ENABLE
 static esp_pm_lock_handle_t s_bt_pm_lock = NULL; /* 蓝牙运行时锁定 CPU 频率，防止 PM 导致看门狗复位 */
 #endif
-static uint8_t s_reconnect_retry = 0;        /* a2dp reconnect retry counter */
 static codec_type_t s_codec_type = CODEC_UNKNOWN; /* current a2dp codec */
 static uint32_t s_last_cfg_ms = 0;   /* 最近一次 codec 配置时刻（补位延时基准） */
 static char s_title[256] = {0};              /* avrcp title（实际为歌词） */
@@ -324,24 +323,30 @@ static void bt_a2dp_reconnect_task(void *arg)
     uint8_t last_bda[ESP_BD_ADDR_LEN] = {0};
     bt_a2dp_read_last_bda(last_bda);
 
-    /* Short delay: let the phone finish tearing down the old control channel
-       while still reconnecting before the phone starts its own A2DP reconnect.
-       ESP32-A2DP reconnects immediately; experience shows 300-500 ms is a
-       good compromise between avoiding collision and winning the race. */
-    vTaskDelay(pdMS_TO_TICKS(A2DP_RECONNECT_DELAY_MS));
+    if (memcmp(last_bda, "\0\0\0\0\0\0", ESP_BD_ADDR_LEN) == 0) {
+        s_reconnect_task_running = false;
+        vTaskDelete(NULL);
+    }
 
-    if (!s_a2dp_connected && memcmp(last_bda, "\0\0\0\0\0\0", ESP_BD_ADDR_LEN) != 0) {
-        if (s_reconnect_retry < A2DP_RECONNECT_MAX_RETRY) {
-            s_reconnect_retry++;
-            ESP_LOGI(BT_AV_TAG, "A2DP reconnecting to restore AVRCP (retry %d/%d)",
-                     s_reconnect_retry, A2DP_RECONNECT_MAX_RETRY);
-            esp_a2d_sink_connect(last_bda);
-        } else {
-            ESP_LOGW(BT_AV_TAG, "A2DP reconnect retry limit reached, stop reconnecting");
-            s_reconnect_retry = 0;
+    /* 循环重试：首次 connect 常因对端未就绪（page scan 窗口/刚开机）而失败
+     * （实测 SDP conn error 0x9 + BTA_AV_OPEN_EVT FAILED status 2，失败断开被
+     * 报为 NORMAL 不会再次入队）——单次尝试即放弃会表现为"开机不回连"。
+     * 每次发起后等待结果窗口（连上即退出），失败按递增间隔重试直到上限。 */
+    for (int retry = 1; retry <= A2DP_RECONNECT_MAX_RETRY && !s_a2dp_connected; retry++) {
+        vTaskDelay(pdMS_TO_TICKS(A2DP_RECONNECT_DELAY_MS + (retry - 1) * 1500));
+        if (s_a2dp_connected) {
+            break;
         }
-    } else {
-        s_reconnect_retry = 0;
+        ESP_LOGI(BT_AV_TAG, "A2DP reconnecting to last device (retry %d/%d)",
+                 retry, A2DP_RECONNECT_MAX_RETRY);
+        esp_a2d_sink_connect(last_bda);
+        /* 等待连接结果窗口：连上（CONNECTED 事件置位）即退出；超时则下一轮重试 */
+        for (int w = 0; w < 40 && !s_a2dp_connected; w++) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+    }
+    if (!s_a2dp_connected) {
+        ESP_LOGW(BT_AV_TAG, "A2DP reconnect retry limit reached, stop reconnecting");
     }
 
     s_reconnect_task_running = false;
@@ -627,22 +632,15 @@ static void bt_av_hdl_a2d_evt(uint16_t event, void *p_param)
                can keep draining the event queue during a codec switch storm. */
             bt_av_bg_enqueue_i2s_stop();
             bt_av_bg_enqueue_save_bda(bda);
-            /* 异常断开（远程关闭）时自动重连；主动本地断开（disc_rsn == NORMAL）不重连 */
-#if CONFIG_EXAMPLE_A2DP_SINK_AUTO_RECONNECT
+            /* 仅在异常断开（远程关闭连接）时自动重连；主动本地断开时 disc_rsn == NORMAL，不重连 */
             if (a2d->conn_stat.disc_rsn != ESP_A2D_DISC_RSN_NORMAL) {
                 bt_av_bg_enqueue_reconnect();
-            } else {
-                s_reconnect_retry = 0;
             }
-#else
-            s_reconnect_retry = 0;
-#endif
         } else if (a2d->conn_stat.state == ESP_A2D_CONNECTION_STATE_CONNECTED){
             s_a2dp_connected = true;
             s_a2dp_connecting = false;
             s_audio_cfg_received_after_connect = false;
             memcpy(s_peer_bda, bda, ESP_BD_ADDR_LEN);
-            s_reconnect_retry = 0;
             esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE);
             /* 部分 LHDC V5 采样率切换时 ESP_A2D_AUDIO_CFG_EVT 不会上报，
                在连接成功后主动应用缓存配置作为后备（BtAvBgTask 执行） */
@@ -1124,4 +1122,11 @@ void bt_av_hdl_stack_evt(uint16_t event, void *p_param)
         break;
     }
 }
+
+#if (CONFIG_EXAMPLE_A2DP_SINK_AUTO_RECONNECT == true)
+void bt_reconnect(void)
+{
+    bt_av_bg_enqueue_reconnect();
+}
+#endif
 

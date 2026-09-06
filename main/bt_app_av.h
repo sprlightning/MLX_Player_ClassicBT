@@ -49,4 +49,8 @@ void bt_app_rc_ct_cb(esp_avrc_ct_cb_event_t event, esp_avrc_ct_cb_param_t *param
  */
 void bt_app_rc_tg_cb(esp_avrc_tg_cb_event_t event, esp_avrc_tg_cb_param_t *param);
 
+#if (CONFIG_EXAMPLE_A2DP_SINK_AUTO_RECONNECT == true)
+void bt_reconnect(void);
+#endif
+
 #endif /* __BT_APP_AV_H__*/
