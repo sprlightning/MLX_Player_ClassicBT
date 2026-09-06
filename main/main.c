@@ -44,20 +44,18 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(err);
 
-    /* 临时诊断：开机主动回连失败排查（SDP conn error 0x9）——抓 page/ACL/加密过程 */
-    esp_log_level_set("BT_HCI", ESP_LOG_DEBUG);
-    esp_log_level_set("BT_SDP", ESP_LOG_DEBUG);
-    esp_log_level_set("BT_L2CAP", ESP_LOG_DEBUG);
-    esp_log_level_set("BT_AV", ESP_LOG_DEBUG);
-    esp_log_level_set("BT_BTC", ESP_LOG_DEBUG);
-    esp_log_level_set("BT_APPL", ESP_LOG_DEBUG);
-    esp_log_level_set("BT_AVDT", ESP_LOG_DEBUG);
-
     /* I2S output (PCM5102A), ringbuffer + consumer task inside */
     ESP_ERROR_CHECK(audio_output_init());
 
-    /* BTDM controller firmware (BLE+BR/EDR): keep BLE memory and enable as BTDM.
-       BR/EDR-only firmware: release BLE memory and enable as CLASSIC_BT. */
+    /* BR/EDR-only controller firmware: release the unused BLE controller
+       memory before init (BTDM firmware keeps it). */
+#if !CONFIG_BTDM_CTRL_MODE_BTDM
+    esp_err_t mem_ret = esp_bt_controller_mem_release(ESP_BT_MODE_BLE);
+    if (mem_ret != ESP_OK) {
+        ESP_LOGW(BT_AV_TAG, "BT controller mem_release skipped: %s", esp_err_to_name(mem_ret));
+    }
+#endif
+
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     if ((err = esp_bt_controller_init(&bt_cfg)) != ESP_OK) {
         ESP_LOGE(BT_AV_TAG, "%s initialize controller failed: %s", __func__, esp_err_to_name(err));
@@ -69,10 +67,6 @@ void app_main(void)
         return;
     }
 #else
-    esp_err_t mem_ret = esp_bt_controller_mem_release(ESP_BT_MODE_BLE);
-    if (mem_ret != ESP_OK) {
-        ESP_LOGW(BT_AV_TAG, "BT controller mem_release skipped: %s", esp_err_to_name(mem_ret));
-    }
     if ((err = esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT)) != ESP_OK) {
         ESP_LOGE(BT_AV_TAG, "%s enable controller failed: %s", __func__, esp_err_to_name(err));
         return;
