@@ -105,7 +105,8 @@ void app_main(void)
 
     /* 蓝牙自动回连：开启后进入蓝牙模式即主动连接上次配对设备（像普通蓝牙耳机）。
      * 复用 BT_AV_BG_WORK_RECONNECT 专用任务（延迟 ~400ms 等 A2DP 初始化完成再
-     * esp_a2d_sink_connect last_bda），与断开后恢复 AVRCP 的回连相互独立。 */
+     * esp_a2d_sink_connect last_bda），与断开后恢复 AVRCP 的回连相互独立。 
+     * WARNING: Must set BR_EDR_MAX_ACL_CONN=2 or higher, or reconnect will fail.*/
 #if (CONFIG_EXAMPLE_A2DP_SINK_AUTO_RECONNECT == true)
     ESP_LOGI(BT_AV_TAG, "Auto reconnect enabled, scheduling connect to last device");
     bt_reconnect();
