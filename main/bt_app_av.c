@@ -339,7 +339,10 @@ static void bt_a2dp_reconnect_task(void *arg)
         }
         ESP_LOGI(BT_AV_TAG, "A2DP reconnecting to last device (retry %d/%d)",
                  retry, A2DP_RECONNECT_MAX_RETRY);
-        esp_a2d_sink_connect(last_bda);
+        esp_err_t cret = esp_a2d_sink_connect(last_bda);
+        if (cret != ESP_OK) {
+            ESP_LOGW(BT_AV_TAG, "esp_a2d_sink_connect returned: %s", esp_err_to_name(cret));
+        }
         /* 等待连接结果窗口：连上（CONNECTED 事件置位）即退出；超时则下一轮重试 */
         for (int w = 0; w < 40 && !s_a2dp_connected; w++) {
             vTaskDelay(pdMS_TO_TICKS(100));

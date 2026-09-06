@@ -44,6 +44,15 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(err);
 
+    /* 临时诊断：开机主动回连失败排查（SDP conn error 0x9）——抓 page/ACL/加密过程 */
+    esp_log_level_set("BT_HCI", ESP_LOG_DEBUG);
+    esp_log_level_set("BT_SDP", ESP_LOG_DEBUG);
+    esp_log_level_set("BT_L2CAP", ESP_LOG_DEBUG);
+    esp_log_level_set("BT_AV", ESP_LOG_DEBUG);
+    esp_log_level_set("BT_BTC", ESP_LOG_DEBUG);
+    esp_log_level_set("BT_APPL", ESP_LOG_DEBUG);
+    esp_log_level_set("BT_AVDT", ESP_LOG_DEBUG);
+
     /* I2S output (PCM5102A), ringbuffer + consumer task inside */
     ESP_ERROR_CHECK(audio_output_init());
 
