@@ -56,8 +56,11 @@ void app_main(void)
     /* I2S output (PCM5102A), ringbuffer + consumer task inside */
     ESP_ERROR_CHECK(audio_output_init());
 
-    /* Classic BT only: release BLE controller memory */
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
+    /* Classic BT only: release BLE controller memory (BTDM controller keeps it) */
+    esp_err_t mem_ret = esp_bt_controller_mem_release(ESP_BT_MODE_BLE);
+    if (mem_ret != ESP_OK) {
+        ESP_LOGW(BT_AV_TAG, "BT controller mem_release skipped: %s", esp_err_to_name(mem_ret));
+    }
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     if ((err = esp_bt_controller_init(&bt_cfg)) != ESP_OK) {
