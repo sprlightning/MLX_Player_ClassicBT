@@ -12,6 +12,8 @@ real time on a plain 240 MHz classic ESP32**, single core, with no PSRAM.
 > rev 3.1, 4 MB flash, no PSRAM)**. The name was kept so it matches the
 > measurements quoted throughout this repository. It also builds for `esp32s31`.
 
+![](figures/esp32cam_pcm512a.jpg)
+
 ## Codecs
 
 All decode in software on the chip. Enabled in `sdkconfig.defaults`:
@@ -32,7 +34,7 @@ All decode in software on the chip. Enabled in `sdkconfig.defaults`:
 |---|---|
 | Chip | ESP32-D0WD-V3 (WROOM), 4 MB flash, PSRAM absent and disabled |
 | CPU | 240 MHz (`CONFIG_ESP32_DEFAULT_CPU_FREQ_240`) — the default 160 MHz is not enough for 192 kHz |
-| I2S | BCLK **GPIO27**, WS/LRCK **GPIO25**, DOUT **GPIO26**, no MCLK |
+| I2S | BCLK **GPIO2**, WS/LRCK **GPIO15**, DOUT **GPIO14**, no MCLK |
 | I2S format | always 32-bit stereo Philips; the decoder's 16/24-bit PCM is up-converted |
 | Console | **921600 baud** — see below |
 
@@ -40,11 +42,10 @@ Pins are `CONFIG_EXAMPLE_I2S_*` in `sdkconfig.defaults.esp32`; change them there
 
 ## Build and flash
 
-Use the ESP-IDF fork bundled in this repository (`../esp-idf-v6.1-codecs`). It
-already contains the codecs and needs no submodule step.
+Use the ESP-IDF fork [a2dp-codecs/v6.1.0](https://github.com/sprlightning/esp-idf-bt-multiple-codecs/tree/a2dp-codecs/v6.1.0) .
 
 ```
-cd ../esp-idf-v6.1-codecs && . ./export.sh     # export.ps1 on Windows
+cd ${IDP_PATH} && . ./export.sh     # export.ps1 on Windows
 cd ../WROVER_A2DP_Sink
 idf.py set-target esp32
 idf.py -p <PORT> flash monitor
